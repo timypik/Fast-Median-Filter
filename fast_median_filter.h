@@ -2,7 +2,7 @@
   ******************************************************************************
   * @file    fast_median_filter.h
   * @author  Khusainov Timur
-  * @version 0.0.0.1
+  * @version 0.0.0.3
   * @date    14.04.2014
   * @brief   Fast implementation of median filter (for FLOAT data)
   ******************************************************************************

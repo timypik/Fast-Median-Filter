@@ -2,7 +2,7 @@
   ******************************************************************************
   * @file    fast_median_filter.c
   * @author  Khusainov Timur
-  * @version 0.0.0.1
+  * @version 0.0.0.3
   * @date    14.04.2014
   * @brief   Fast implementation of median filter (for FLOAT data)
   ******************************************************************************
@@ -27,12 +27,14 @@ float FastMedianFilter(tMedianFilter *filter, float value)
 	if (filter->count > 0) /* must work */
 	//----------------------------------------------------------------------------
 	{
-		size_t _old_index;
-		float _old_value;
+		/* pair of index and data in sortion array */
+		size_t _old_index; /* add/replace real index */
+		float _old_value; /* add/replace reavl value */
 		
 		/* get real index for replace value */
 		if (filter->count == filter->length)
 		{
+			/* find pair index/data */
 			for (size_t i = 0; i < m_length; ++i)
 				if (filter->index_array[i] == m_position)
 				{
@@ -41,23 +43,24 @@ float FastMedianFilter(tMedianFilter *filter, float value)
 				}
 		}
 		else
-			_old_index = m_position;
+			_old_index = m_position; /* fill filter - just add new value */
 		
-		/* get and replace old value */
+		/* get old value */
 		_old_value = filter->data_array[m_position];
-		filter->data_array[m_position] = value;
 		
+		/* compare values */
 		if (_old_value != value)
 		{
+			filter->data_array[m_position] = value; /* replace old value */
+			size_t * _index = &filter->index_array[_old_index]; /* get old sorting index */
+
 			if (_old_value < value)
 			{
-				size_t * _index = &filter->index_array[_old_index + 1];
-
 				/* go up */
 				while (++_old_index != m_length)
 				{
 					/* get real index for next value */
-					size_t _check_index = *_index;
+					size_t _check_index = *(++_index);
 
 					/* get next value for check and compare values */
 					if (filter->data_array[_check_index] < value) 
@@ -67,20 +70,16 @@ float FastMedianFilter(tMedianFilter *filter, float value)
 						*(_index - 1) = _check_index;
 					}
 					else break;
-					
-					++_index;
 				}
 				//----------------------------------------------------------------------
 			}
 			else if (_old_value > value)
 			{
-				size_t * _index = &filter->index_array[_old_index - 1];
-
 				/* go down */
 				while (_old_index-- != 0)
 				{
 					/* get real index for previous value */
-					size_t _check_index = *_index;
+					size_t _check_index = *(--_index);
 
 					/* get previous value for check and compare values */
 					if (filter->data_array[_check_index] > value) 
@@ -90,8 +89,6 @@ float FastMedianFilter(tMedianFilter *filter, float value)
 						*(_index + 1) = _check_index;
 					}
 					else break;
-					
-					--_index;
 				}
 				//----------------------------------------------------------------------
 			}
