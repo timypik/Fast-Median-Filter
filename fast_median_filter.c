@@ -2,7 +2,7 @@
   ******************************************************************************
   * @file    fast_median_filter.c
   * @author  Khusainov Timur
-  * @version 0.0.0.3
+  * @version 0.0.0.4
   * @date    14.04.2014
   * @brief   Fast implementation of median filter (for FLOAT data)
   ******************************************************************************
@@ -45,61 +45,54 @@ float FastMedianFilter(tMedianFilter *filter, float value)
 		else
 			_old_index = m_position; /* fill filter - just add new value */
 		
-		/* get old value */
+		/* get and replace old value */
 		_old_value = filter->data_array[m_position];
+		filter->data_array[m_position] = value; 
 		
-		/* compare values */
-		if (_old_value != value)
+		/* get old sorting index */
+		size_t * _index = &filter->index_array[_old_index];
+
+		if (_old_value < value) /* compare values -> get high */
 		{
-			filter->data_array[m_position] = value; /* replace old value */
-			size_t * _index = &filter->index_array[_old_index]; /* get old sorting index */
-
-			if (_old_value < value)
+			/* go up */
+			while (++_old_index != m_length)
 			{
-				/* go up */
-				while (++_old_index != m_length)
+				/* get real index for next value */
+				size_t _check_index = *(++_index);
+
+				/* get next value for check and compare values */
+				if (filter->data_array[_check_index] < value) 
 				{
-					/* get real index for next value */
-					size_t _check_index = *(++_index);
-
-					/* get next value for check and compare values */
-					if (filter->data_array[_check_index] < value) 
-					{
-						/* swap real indexes */
-						*_index = *(_index - 1);
-						*(_index - 1) = _check_index;
-					}
-					else break;
+					/* swap real indexes */
+					*_index = *(_index - 1);
+					*(_index - 1) = _check_index;
 				}
-				//----------------------------------------------------------------------
+				else break;
 			}
-			else if (_old_value > value)
-			{
-				/* go down */
-				while (_old_index-- != 0)
-				{
-					/* get real index for previous value */
-					size_t _check_index = *(--_index);
-
-					/* get previous value for check and compare values */
-					if (filter->data_array[_check_index] > value) 
-					{
-						/* swap real indexes */
-						*_index = *(_index + 1);
-						*(_index + 1) = _check_index;
-					}
-					else break;
-				}
-				//----------------------------------------------------------------------
-			}
-
-			static float _check_array[11] = {0};
-			for (size_t i = 0; i < 11; ++i)
-			{
-				size_t _i = filter->index_array[i];
-				_check_array[i] = filter->data_array[_i];
-			}
+			//------------------------------------------------------------------------
 		}
+		else if (_old_value > value) /* compare values -> get low*/
+		{
+			/* go down */
+			while (_old_index-- != 0)
+			{
+				/* get real index for previous value */
+				size_t _check_index = *(--_index);
+
+				/* get previous value for check and compare values */
+				if (filter->data_array[_check_index] > value) 
+				{
+					/* swap real indexes */
+					*_index = *(_index + 1);
+					*(_index + 1) = _check_index;
+				}
+				else break;
+			}
+			//------------------------------------------------------------------------
+		}
+
+		size_t _med_index = filter->index_array[m_length/2];
+		m_result = filter->data_array[_med_index];
 	}
 	//----------------------------------------------------------------------------
 	else /* init filter */
